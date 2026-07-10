@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Cards (Package)": {
+      "commandName": "MsixPackage"
+    },
+    "Cards (Unpackaged)": {
+      "commandName": "Project"
+    }
+  }
+}
