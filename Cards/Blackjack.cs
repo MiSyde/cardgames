@@ -4,16 +4,25 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml.Controls;
 
 namespace Cards
 {
     public class Blackjack
     {
         private BlackjackDealer dealer;
+        // Hit, Stand, Double Down, Surrender, Insurance, Split 
+        private Dictionary<int, List<Button>> buttons;
+        public Dictionary<int, List<Button>> Buttons { get { return buttons; } }
         private List<Player> players;
+        public int PlayerCount { get { return players.Count; } }
         private ObservableCollection<int> currentPlayers;
         private List<int> allPlayers;
         private int playerIdx;
+        private bool joinable;
+        public bool Joinable { get { return joinable; } }
         public Blackjack() 
         { 
             dealer = new BlackjackDealer(new Random(), new Deck()); 
@@ -21,6 +30,38 @@ namespace Cards
             currentPlayers = new(); 
             currentPlayers.CollectionChanged += PlayerExited;
             allPlayers = new();
+            buttons = new();
+            joinable = true;
+        }
+
+        private List<Button> GenerateButtons()
+        {
+            Button StandB = new();
+            StandB.Content = "Stand";
+            StandB.Command = new RelayCommand(Stand, () => StandB.Name == playerIdx.ToString());
+            Button HitB = new();
+            HitB.Content = "Hit";
+            HitB.Command = new RelayCommand(Hit, () => HitB.Name == playerIdx.ToString());
+            Button SurrenderB = new();
+            SurrenderB.Content = "Surrender";
+            SurrenderB.Command = new RelayCommand(Surrender, () => SurrenderB.Name == playerIdx.ToString());
+            Button InsuranceB = new();
+            InsuranceB.Content = "Insurance";
+            InsuranceB.Command = new RelayCommand(Insurance, () => InsuranceB.Name == playerIdx.ToString());
+            Button DoubleDownB = new();
+            DoubleDownB.Content = "Double Down";
+            DoubleDownB.Command = new RelayCommand(DoubleDown, () => DoubleDownB.Name == playerIdx.ToString());
+            Button SplitB = new();
+            SplitB.Content = "Split";
+            SplitB.Command = new RelayCommand(Split, () => SplitB.Name == playerIdx.ToString());
+            List<Button> list = new();
+            list.Add(HitB);
+            list.Add(StandB);
+            list.Add(DoubleDownB);
+            list.Add(SurrenderB);
+            list.Add(InsuranceB);
+            list.Add(SplitB);
+            return list;
         }
 
         private void PlayerExited(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -234,13 +275,15 @@ namespace Cards
         }
 
 
-        public void AddPlayer()
+        public int AddPlayer()
         {
             int db = currentPlayers.Count()+1;
             Player newPlayer = new(db);
             players.Add(newPlayer);
             currentPlayers.Add(db);
             allPlayers.Add(db);
+            buttons.Add(db, GenerateButtons());
+            return db;
         }
 
         // If the player busted/got 21/stood with their last action, they get removed from the game and the index points to the next active player
