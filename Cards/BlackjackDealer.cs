@@ -12,6 +12,7 @@ namespace Cards
         private Random deal;
         private Deck deck;
         private int chips;
+        public new bool IsSplit => false;
         public int Chips { get { return chips; } set { chips = value; } }
 
         public BlackjackDealer(Random deal, Deck deck) : base()
@@ -32,7 +33,10 @@ namespace Cards
         }
         public void FinishDrawing()
         {
-
+            Draw();
+            if (CardScore >= 21) return;
+            if (CardScore <= 15) FinishDrawing();
+            return;
         }
     }
 

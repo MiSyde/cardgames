@@ -1,4 +1,7 @@
 ﻿using Cards.Enums;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Controls.Primitives;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,38 +13,28 @@ namespace Cards
 {
     public class Player : Generic
     {
-        private int chips;
-        private bool didSplit;
-        private Split? split;
-        public int Chips { get { return chips; } set { chips = value; } }
-        public Split? Split { get { return split; } }
-        public bool DidSplit { get { return didSplit; } }
-        private int myIdx;
-        public int MyIdx { get { return myIdx; } set { myIdx = value; } }
-        public void InitSplit(int i)
-        {
-            didSplit = true;
-            split = new(CurrentCards.First(), i, this);
-            CurrentCards.RemoveAt(0);
-            if(chips >= Bet)
-            {
-                split.Bet = Bet;
-                chips -= Bet;
-            } else
-            {
-                split.Bet = chips;
-                chips = 0;
-            }
-        }
+        public new bool IsSplit => false;
+        public new int PlayerId => Id;
+        private int _chips;
+        private int _splitId;
+        public int SplitId { get { return _splitId; } set { _splitId = value; } }
+        private bool _didSplit;
+        public bool DidSplit { get { return _didSplit; } set { _didSplit = value; } }
+
+        public int Chips { get { return _chips; } set { _chips = value; } }
 
         public Player(int i) : base()
         {
-            myIdx = i;
-            didSplit = false;
+            
+            Id = i;
+            IsActive = true;
+            DidSplit = false;
+            _splitId = -1;
         }
 
         public bool CanSplit()
         {
+            if (DidSplit) return false;
             if(CurrentCards.Count == 2)
             {
                 Card c1 = CurrentCards.First();

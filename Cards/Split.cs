@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -9,11 +10,18 @@ namespace Cards
 {
     public class Split : Generic
     {
-        private int myIdx;
-        public int MyIdx { get { return myIdx; } }
-        private Player player;
-        public Player Player { get { return player; } }
-        public Split(Card c, int i, Player p) : base() { CurrentCards.Add(c); myIdx = i; player = p; }
+        public new bool IsSplit => true;
+        public new int PlayerId { get; }
 
+        private Player _player;
+        public Player Player { get { return _player; } }
+        public Split(Card c, int i, Player p) : base() 
+        { 
+            CurrentCards.Add(c);
+            IsActive = true;
+            Id = i; 
+            _player = p; 
+            PlayerId = p.PlayerId; 
+        }
     }
 }

@@ -25,37 +25,24 @@ namespace Cards
     public sealed partial class MainWindow : Window
     {
         readonly Blackjack game;
+        RelayCommand AddPlayerCommand;
+        RelayCommand StartGameCommand;
+        Thickness buttonThickness;
         public MainWindow()
         {
             game = new();
             InitializeComponent();
-            AddPlayerButton();
-            RowDefinition Card = new();
-            RowDefinition HitButtonRow = new();
-            RowDefinition StandButtonRow = new();
-            RowDefinition DoubleDownButtonRow = new();
-            RowDefinition SurrenderButtonRow = new();
-            RowDefinition InsuranceButtonRow = new();
-            RowDefinition SplitButtonRow = new();
-            MainGrid.RowDefinitions.Add(Card);
-            MainGrid.RowDefinitions.Add(HitButtonRow);
-            MainGrid.RowDefinitions.Add(StandButtonRow);
-            MainGrid.RowDefinitions.Add(DoubleDownButtonRow);
-            MainGrid.RowDefinitions.Add(SurrenderButtonRow);
-            MainGrid.RowDefinitions.Add(InsuranceButtonRow);
-            MainGrid.RowDefinitions.Add(SplitButtonRow);
+            AddPlayerCommand = new RelayCommand(AddPlayer, () => game.Joinable);
+            StartGameCommand = new RelayCommand(StartGame, () => game.PlayerCount >= 1);
+            buttonThickness = new Thickness(5, 5, 5, 5);
         }
 
-        private void AddPlayerButton()
+        private void StartGame()
         {
-            Button b = new();
-            b.Content = "Add player";
-            b.Command = new RelayCommand(AddPlayer, () => game.Joinable);
-            MainGrid.RowDefinitions.Add(new RowDefinition());
-            Grid.SetColumn(b, 0);
-            Grid.SetRow(b, 0);
-            MainGrid.Children.Add(b);
+            game.StartGame();
+            AddPlayerCommand.NotifyCanExecuteChanged();
         }
+
         private void AddPlayer()
         {
             ColumnDefinition Column = new();
@@ -71,9 +58,13 @@ namespace Cards
                     Grid.SetColumn(b, playerCount - 1);
                     Grid.SetRow(b, i+1);
                     MainGrid.Children.Add(b);
+                    b.Margin = buttonThickness;
+                    b.HorizontalAlignment = HorizontalAlignment.Center;
+                    b.VerticalAlignment = VerticalAlignment.Center;
                     ++i;
                 }
             }
+            StartGameCommand.NotifyCanExecuteChanged();
         }
     }
 }

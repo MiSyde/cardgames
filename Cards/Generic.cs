@@ -1,4 +1,6 @@
-﻿using System;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml.Controls;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -7,9 +9,8 @@ using System.Threading.Tasks;
 
 namespace Cards
 {
-    public class Generic
+    public class Generic : IHand
     {
-        private bool stillInGame;
         private int roundBet;
         private int cardScore;
         private bool twoCardBlackjack;
@@ -17,15 +18,31 @@ namespace Cards
         public ObservableCollection<Card> CurrentCards { get { return currentCards; } }
         public int Bet { get { return roundBet; } set { roundBet = value; } }
         public int CardScore { get { return cardScore; } set { cardScore = value; } }
-        public bool StillInGame { get { return stillInGame; } set { stillInGame = value; } }
         public bool TwoCardBlackjack { get { return twoCardBlackjack; } set { twoCardBlackjack = value; } }
+        public bool IsActive { get; set; }
+        public int Id { get; set; }
+        public bool IsSplit { get; }
+        public int PlayerId { get; }
+        private List<Button> _buttons = new();
+        public List<Button> Buttons { get => _buttons; set => _buttons = value; }
         public Generic()
         {
             currentCards = new();
-            stillInGame = true;
             twoCardBlackjack = false;
             CurrentCards.CollectionChanged += UpdateScore;
             cardScore = 0;
+        }
+        public List<Button> GetButtons()
+        {
+            return _buttons;
+        }
+
+        public void UpdateButtons()
+        {
+            foreach (Button b in _buttons)
+            {
+
+            }
         }
         private void UpdateScore(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
@@ -56,7 +73,7 @@ namespace Cards
             }
             if (cardScore >= 21)
             {
-                stillInGame = false;
+                IsActive = false;
             }
             if (cardScore == 21 && currentCards.Count == 2)
             {
