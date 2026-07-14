@@ -28,7 +28,6 @@ namespace Cards
         private ObservableCollection<int> _activeHands;
         private int _currentHandId;
         private int _nextHandId;
-        private int _previousHandId;
         private bool _joinable;
         public event PropertyChangedEventHandler? PropertyChanged;
         private int _playerCount;
@@ -52,7 +51,7 @@ namespace Cards
             _hands = new();
             _buttons = new();
             _joinable = true;
-            _currentHandId = 0;
+            _currentHandId = 1;
             _nextHandId = 1;
             _activeHands = new();
         }
@@ -64,7 +63,7 @@ namespace Cards
             _activeHands = new ObservableCollection<int>(_hands.Keys);
             _activeHands.CollectionChanged += PlayerExited;
 
-            UpdateAllButtons();
+            UpdateButtonsForHand(_currentHandId);
         }
         private void UpdateAllButtons()
         {
@@ -81,7 +80,7 @@ namespace Cards
 
             foreach (Button btn in buttons)
             {
-                if (btn.Command is RelayCommand<object> command)
+                if (btn.Command is RelayCommand<int> command)
                 {
                     command.NotifyCanExecuteChanged();
                 }
@@ -92,41 +91,40 @@ namespace Cards
         {
             List<Button> list = new();
 
-            Button StandB = new();
-            StandB.Content = "Stand";
-            StandB.Command = new RelayCommand<int>(id => Stand(id), id => CanAct(id));
-            StandB.CommandParameter = handId;
-
             Button HitB = new();
             HitB.Content = "Hit";
             HitB.Command = new RelayCommand<int>(id => Hit(id), id => CanAct(id));
             HitB.CommandParameter = handId;
+            list.Add(HitB);
 
-            Button SurrenderB = new();
-            SurrenderB.Content = "Surrender";
-            SurrenderB.Command = new RelayCommand<int>(id => Surrender(id), id => CanAct(id));
-            SurrenderB.CommandParameter = handId;
-
-            Button InsuranceB = new();
-            InsuranceB.Content = "Insurance";
-            InsuranceB.Command = new RelayCommand<int>(id => Insurance(id), id => CanInsure(id));
-            InsuranceB.CommandParameter = handId;
+            Button StandB = new();
+            StandB.Content = "Stand";
+            StandB.Command = new RelayCommand<int>(id => Stand(id), id => CanAct(id));
+            StandB.CommandParameter = handId;
+            list.Add(StandB);
 
             Button DoubleDownB = new();
             DoubleDownB.Content = "Double Down";
             DoubleDownB.Command = new RelayCommand<int>(id => DoubleDown(id), id => CanAct(id));
             DoubleDownB.CommandParameter = handId;
+            list.Add(DoubleDownB);
+
+            Button SurrenderB = new();
+            SurrenderB.Content = "Surrender";
+            SurrenderB.Command = new RelayCommand<int>(id => Surrender(id), id => CanSurrender(id));
+            SurrenderB.CommandParameter = handId;
+            list.Add(SurrenderB);
+
+            Button InsuranceB = new();
+            InsuranceB.Content = "Insurance";
+            InsuranceB.Command = new RelayCommand<int>(id => Insurance(id), id => CanInsure(id));
+            InsuranceB.CommandParameter = handId;
+            list.Add(InsuranceB);
 
             Button SplitB = new();
             SplitB.Content = "Split";
             SplitB.Command = new RelayCommand<int>(id => Split(id), id => CanSplit(id));
             SplitB.CommandParameter = handId;
-
-            list.Add(HitB);
-            list.Add(StandB);
-            list.Add(DoubleDownB);
-            list.Add(SurrenderB);
-            list.Add(InsuranceB);
             list.Add(SplitB);
 
             return list;
@@ -144,6 +142,13 @@ namespace Cards
 
             Card c = _dealer.CurrentCards.First();
             return c.IsFaceCard && c.FaceCardType is FaceCard.Ace && hand.IsActive && hand.Id == _currentHandId;
+        }
+
+        private bool CanSurrender(int id)
+        {
+            if (!_hands.TryGetValue(id, out IHand? hand)) return false;
+            Generic? g = hand as Generic;
+            return g.CurrentCards.Count == 2 && hand.IsActive && hand.Id == _currentHandId;
         }
 
         private void PlayerExited(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -171,11 +176,13 @@ namespace Cards
                     if(h.IsSplit)
                     {
                         Split? s = h as Split;
+                        if (s.Surrendered) continue;
                         s.Player.Chips += s.Bet * 2;
                     } 
                     else
                     {
                         Player? p = h as Player;
+                        if (p.Surrendered) continue;
                         p.Chips += p.Bet * 2;
                     }
                 }
@@ -192,6 +199,7 @@ namespace Cards
                     if(h.IsSplit)
                     {
                         Split? s = h as Split;
+                        if (s.Surrendered) continue;
                         if(s.CardScore == 21)
                         {
                             int splitCardCount = s.CurrentCards.Count;
@@ -209,6 +217,7 @@ namespace Cards
                     else
                     {
                         Player? p = h as Player;
+                        if (p.Surrendered) continue;
                         if (p.CardScore == 21)
                         {
                             int splitCardCount = p.CurrentCards.Count;
@@ -232,6 +241,7 @@ namespace Cards
                     if(h.IsSplit)
                     {
                         Split? s = h as Split;
+                        if (s.Surrendered) continue;
                         if (s.CardScore > _dealer.CardScore && s.CardScore <= 21)
                         {
                             s.Player.Chips += s.Bet * 2;
@@ -248,6 +258,7 @@ namespace Cards
                     else
                     {
                         Player? p = h as Player;
+                        if (p.Surrendered) continue;
                         if (p.CardScore > _dealer.CardScore && p.CardScore <= 21)
                         {
                             p.Chips += p.Bet * 2;
@@ -302,6 +313,14 @@ namespace Cards
                 if(h.IsSplit)
                 {
                     Split? s = h as Split;
+                    if (s.Surrendered) continue;
+                    if(s.Insured)
+                    {
+                        s.Player.Chips += s.InsuredBet;
+                        s.InsuredBet = 0;
+                        s.Bet = 0;
+                        continue;
+                    }
                     if (s.TwoCardBlackjack)
                     {
                         s.Player.Chips += s.Bet;
@@ -315,6 +334,14 @@ namespace Cards
                 else
                 {
                     Player? p = h as Player;
+                    if (p.Surrendered) continue;
+                    if (p.Insured)
+                    {
+                        p.Chips += p.InsuredBet;
+                        p.InsuredBet = 0;
+                        p.Bet = 0;
+                        continue;
+                    }
                     if (p.TwoCardBlackjack)
                     {
                         p.Chips += p.Bet;
@@ -397,25 +424,67 @@ namespace Cards
 
         public void Insurance(int id)
         {
-            /*
-             * Ha az osztó színével felfelé látszó lapja Ász, akkor a játékos ezzel a bemondással „biztosítást” köthet. A tét legfeljebb az eredeti tét másfélszerese lehet. 
-             * Ha az osztó másik kártyájának értéke 10 (10-es, Bubi, Dáma vagy Király), akkor a játékos a tétet 2:1 arányban kapja vissza. Ha az osztó másik kártyájának értéke a 10-estől eltérő, 
-             * akkor az osztó nyer.
-             */
+            IHand? currentHand = GetHand(id);
+            if(currentHand.IsSplit && currentHand is Split split)
+            {
+                split.Insured = true;
+                int insurance;
+                if ((int)Math.Round(split.Bet * 1.5) > split.Player.Chips) 
+                {
+                    insurance = split.Player.Chips;
+                }
+                else
+                {
+                    insurance = (int)Math.Round(split.Bet * 1.5); 
+                }
+                split.InsuredBet = insurance;
+                split.Player.Chips -= insurance;
+            } 
+            else
+            {
+                Player? player = currentHand as Player;
+                player.Insured = true;
+                int insurance;
+                if ((int)Math.Round(player.Bet * 1.5) > player.Chips)
+                {
+                    insurance = player.Chips;
+                }
+                else
+                {
+                    insurance = (int)Math.Round(player.Bet * 1.5);
+                }
+                player.InsuredBet = insurance;
+                player.Chips -= insurance;
+            }
         }
 
         public void Surrender(int id)
         {
-            /*
-             * A játékos által, a játék feladására használt kifejezés. Ha a játékosnak csak az osztás utáni két lapja van még meg és úgy ítéli meg, hogy a játékot nem tudja megnyerni, 
-             * akkor ezzel a bemondással feladhatja a játékot, és a tétje felét elveszti, a másik felét visszakapja.
-             */
+            IHand? currentHand = GetHand(id);
+            if (currentHand.IsSplit)
+            {
+                Split? current = currentHand as Split;
+                current.IsActive = false;
+                int halfBet = (int)Math.Round((double)current.Bet / 2);
+                current.Player.Chips += halfBet;
+                current.Surrendered = true;
+                _dealer.Chips += halfBet;
+            }
+            else
+            {
+                Player? current = currentHand as Player;
+                current.IsActive = false;
+                int halfBet = (int)Math.Round((double)current.Bet / 2);
+                current.Chips += halfBet;
+                current.Surrendered = true;
+                _dealer.Chips += halfBet;
+            }
+            AdvancePlayerIdx(id);
         }
 
         public void Stand(int id)
         {
             IHand? currentHand = GetHand(id);
-            Card newCard = _dealer.Deal();
             if (currentHand.IsSplit)
             {
                 Split? current = currentHand as Split;

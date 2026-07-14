@@ -33,7 +33,7 @@ namespace Cards
             game = new();
             InitializeComponent();
             AddPlayerCommand = new RelayCommand(AddPlayer, () => game.Joinable);
-            StartGameCommand = new RelayCommand(StartGame, () => game.PlayerCount >= 1);
+            StartGameCommand = new RelayCommand(StartGame, () => game.PlayerCount >= 1 && game.Joinable);
             buttonThickness = new Thickness(5, 5, 5, 5);
         }
 
@@ -41,6 +41,7 @@ namespace Cards
         {
             game.StartGame();
             AddPlayerCommand.NotifyCanExecuteChanged();
+            StartGameCommand.NotifyCanExecuteChanged();
         }
 
         private void AddPlayer()

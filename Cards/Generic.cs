@@ -1,4 +1,5 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using Microsoft.UI.Xaml.Controls;
 using System;
 using System.Collections.Generic;
@@ -23,6 +24,9 @@ namespace Cards
         public int Id { get; set; }
         public bool IsSplit { get; }
         public int PlayerId { get; }
+        public bool Insured { get; set; }
+        public int InsuredBet { get; set; }
+        public bool Surrendered { get; set; }
         private List<Button> _buttons = new();
         public List<Button> Buttons { get => _buttons; set => _buttons = value; }
         public Generic()
@@ -41,7 +45,10 @@ namespace Cards
         {
             foreach (Button b in _buttons)
             {
-
+                if (b.Command is RelayCommand<int> command)
+                {
+                    command.NotifyCanExecuteChanged();
+                }
             }
         }
         private void UpdateScore(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
