@@ -24,10 +24,10 @@ namespace Cards
         public Dictionary<int, List<Button>> Buttons => _buttons;
         private Dictionary<int, IHand> _hands;
         public Dictionary<int, IHand> Hands => _hands;
-
-        public int playerCount;
         private ObservableCollection<int> _activeHands;
+        public ObservableCollection<int> ActiveHands => _activeHands;
         private int _currentHandId;
+        public int CurrentHandId => _currentHandId;
         private int _nextHandId;
         private bool _joinable;
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -38,7 +38,7 @@ namespace Cards
             get => _over;
             set
             {
-                if(_over != value)
+                if (_over != value)
                 {
                     _over = value;
                     PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Over)));
@@ -52,9 +52,9 @@ namespace Cards
         }
 
         public bool Joinable => _joinable;
-        public Blackjack() 
-        { 
-            _dealer = new BlackjackDealer(new Random(), new Deck()); 
+        public Blackjack()
+        {
+            _dealer = new BlackjackDealer(new Random(), new Deck());
             _hands = new();
             _buttons = new();
             _joinable = true;
@@ -162,7 +162,7 @@ namespace Cards
 
         private void PlayerExited(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            if(_activeHands.Count() == 0)
+            if (_activeHands.Count() == 0)
             {
                 _dealer.FinishDrawing();
                 PlayerCount = 0;
@@ -179,16 +179,16 @@ namespace Cards
         }
         private void CheckWinners()
         {
-            if(_dealer.CardScore > 21)
+            if (_dealer.CardScore > 21)
             {
                 foreach (IHand h in _hands.Values)
                 {
-                    if(h.IsSplit)
+                    if (h.IsSplit)
                     {
                         Split? s = h as Split;
                         if (s.Surrendered) continue;
                         s.Player.Chips += s.Bet * 2;
-                    } 
+                    }
                     else
                     {
                         Player? p = h as Player;
@@ -197,20 +197,20 @@ namespace Cards
                     }
                 }
             }
-            else if(_dealer.TwoCardBlackjack)
+            else if (_dealer.TwoCardBlackjack)
             {
                 PushAll();
-            } 
-            else if(_dealer.CardScore == 21)
+            }
+            else if (_dealer.CardScore == 21)
             {
                 int dealerCardCount = _dealer.CurrentCards.Count;
-                foreach(IHand h in _hands.Values)
+                foreach (IHand h in _hands.Values)
                 {
-                    if(h.IsSplit)
+                    if (h.IsSplit)
                     {
                         Split? s = h as Split;
                         if (s.Surrendered) continue;
-                        if(s.CardScore == 21)
+                        if (s.CardScore == 21)
                         {
                             int splitCardCount = s.CurrentCards.Count;
                             if (dealerCardCount > splitCardCount)
@@ -243,12 +243,12 @@ namespace Cards
                         }
                     }
                 }
-            } 
+            }
             else
             {
                 foreach (IHand h in _hands.Values)
                 {
-                    if(h.IsSplit)
+                    if (h.IsSplit)
                     {
                         Split? s = h as Split;
                         if (s.Surrendered) continue;
@@ -264,7 +264,7 @@ namespace Cards
                         {
                             Push(s);
                         }
-                    } 
+                    }
                     else
                     {
                         Player? p = h as Player;
@@ -289,7 +289,7 @@ namespace Cards
         // Döntetlen, játékos visszakapja a tétjét
         private void Push(Generic g)
         {
-            if(g is Player)
+            if (g is Player)
             {
                 Player? p = g as Player;
                 if (p.TwoCardBlackjack)
@@ -301,7 +301,8 @@ namespace Cards
                     _dealer.Chips += p.Bet;
                 }
                 p.Bet = 0;
-            } else
+            }
+            else
             {
                 Split? s = g as Split;
                 Player p = s.Player;
@@ -320,11 +321,11 @@ namespace Cards
         {
             foreach (IHand h in _hands.Values)
             {
-                if(h.IsSplit)
+                if (h.IsSplit)
                 {
                     Split? s = h as Split;
                     if (s.Surrendered) continue;
-                    if(s.Insured)
+                    if (s.Insured)
                     {
                         s.Player.Chips += s.InsuredBet;
                         s.InsuredBet = 0;
@@ -380,7 +381,7 @@ namespace Cards
             {
                 Split? current = currentHand as Split;
                 current?.CurrentCards.Add(newCard);
-            } 
+            }
             else
             {
                 Player? current = currentHand as Player;
@@ -388,14 +389,14 @@ namespace Cards
             }
         }
 
-        public void Hit(int id) 
+        public void Hit(int id)
         {
             DealCard(id);
             AdvancePlayerIdx(id);
             UpdateButtonsForHand(id);
         }
 
-        public void DoubleDown(int id) 
+        public void DoubleDown(int id)
         {
             DealCard(id);
             Stand(id);
@@ -435,21 +436,21 @@ namespace Cards
         public void Insurance(int id)
         {
             IHand? currentHand = GetHand(id);
-            if(currentHand.IsSplit && currentHand is Split split)
+            if (currentHand.IsSplit && currentHand is Split split)
             {
                 split.Insured = true;
                 int insurance;
-                if ((int)Math.Round(split.Bet * 1.5) > split.Player.Chips) 
+                if ((int)Math.Round(split.Bet * 1.5) > split.Player.Chips)
                 {
                     insurance = split.Player.Chips;
                 }
                 else
                 {
-                    insurance = (int)Math.Round(split.Bet * 1.5); 
+                    insurance = (int)Math.Round(split.Bet * 1.5);
                 }
                 split.InsuredBet = insurance;
                 split.Player.Chips -= insurance;
-            } 
+            }
             else
             {
                 Player? player = currentHand as Player;
@@ -466,6 +467,12 @@ namespace Cards
                 player.InsuredBet = insurance;
                 player.Chips -= insurance;
             }
+            AdvancePlayerIdx(id);
+        }
+
+        public void AdvanceAfterSplitEvent()
+        {
+            AdvancePlayerIdx(_currentHandId);
         }
 
         public void Surrender(int id)
@@ -526,24 +533,27 @@ namespace Cards
         {
             IHand? currentHand = GetHand(id);
             if (currentHand == null) return;
+
             int currentIndex = _activeHands.IndexOf(_currentHandId);
+
             if (!currentHand.IsActive)
             {
                 _activeHands.Remove(id);
-                
             }
+
             if (_activeHands.Count == 1 || _activeHands.Count == 0)
             {
                 UpdateAllButtons();
                 return;
             }
-            if(!currentHand.IsSplit && currentHand is Player player)
+
+            if (!currentHand.IsSplit && currentHand is Player player)
             {
-                if(player.DidSplit && player.SplitId != -1)
+                if (player.DidSplit && player.SplitId != -1)
                 {
                     int splitId = player.SplitId;
 
-                    if(_hands.TryGetValue(splitId, out IHand? splitHand) && splitHand.IsActive)
+                    if (_hands.TryGetValue(splitId, out IHand? splitHand) && splitHand.IsActive)
                     {
                         _currentHandId = splitId;
                         UpdateAllButtons();
@@ -553,17 +563,19 @@ namespace Cards
                     {
                         _activeHands.Remove(splitId);
                     }
-                } 
+                }
             }
-            if(!_activeHands.Contains(_currentHandId))
+
+            if (!_activeHands.Contains(_currentHandId))
             {
-                _currentHandId = _activeHands[currentIndex]; // currentIndex's hand got deleted, so in it's place is now the next available hand's id
+                _currentHandId = currentIndex < _activeHands.Count ? _activeHands[currentIndex] : _activeHands[0];
                 UpdateAllButtons();
                 return;
             }
 
-            _currentHandId = _activeHands[currentIndex + 1];
-            
+            int nextIndex = currentIndex + 1;
+            _currentHandId = nextIndex < _activeHands.Count ? _activeHands[nextIndex] : _activeHands[0];
+
             UpdateAllButtons();
         }
     }
