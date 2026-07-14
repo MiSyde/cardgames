@@ -27,6 +27,7 @@ namespace Cards
         public bool Insured { get; set; }
         public int InsuredBet { get; set; }
         public bool Surrendered { get; set; }
+        public TextBlock CardVisualBlock;
         private List<Button> _buttons = new();
         public List<Button> Buttons { get => _buttons; set => _buttons = value; }
         public Generic()
@@ -35,6 +36,7 @@ namespace Cards
             twoCardBlackjack = false;
             CurrentCards.CollectionChanged += UpdateScore;
             cardScore = 0;
+            CardVisualBlock = new();
         }
         public List<Button> GetButtons()
         {
@@ -86,6 +88,7 @@ namespace Cards
             {
                 twoCardBlackjack = true;
             }
+            CardVisualBlock.Text = cardScore.ToString();
         }
     }
 }

@@ -18,6 +18,7 @@ namespace Cards
     partial class Blackjack : INotifyPropertyChanged
     {
         private BlackjackDealer _dealer;
+        public BlackjackDealer Dealer => _dealer;
         // Hit, Stand, Double Down, Surrender, Insurance, Split 
         private Dictionary<int, List<Button>> _buttons;
         public Dictionary<int, List<Button>> Buttons => _buttons;
@@ -31,17 +32,23 @@ namespace Cards
         private bool _joinable;
         public event PropertyChangedEventHandler? PropertyChanged;
         private int _playerCount;
+        private bool _over;
+        public bool Over
+        {
+            get => _over;
+            set
+            {
+                if(_over != value)
+                {
+                    _over = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Over)));
+                }
+            }
+        }
         public int PlayerCount
         {
             get => _playerCount;
-            set
-            {
-                if(_playerCount != value)
-                {
-                    _playerCount = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(PlayerCount)));
-                }
-            }
+            set { _playerCount = value; }
         }
 
         public bool Joinable => _joinable;
@@ -54,6 +61,7 @@ namespace Cards
             _currentHandId = 1;
             _nextHandId = 1;
             _activeHands = new();
+            _over = false;
         }
 
         public void StartGame()
@@ -62,7 +70,8 @@ namespace Cards
 
             _activeHands = new ObservableCollection<int>(_hands.Keys);
             _activeHands.CollectionChanged += PlayerExited;
-
+            Over = false;
+            _dealer.Draw();
             UpdateButtonsForHand(_currentHandId);
         }
         private void UpdateAllButtons()
@@ -158,6 +167,7 @@ namespace Cards
                 _dealer.FinishDrawing();
                 PlayerCount = 0;
                 CheckWinners();
+                Over = true;
             }
         }
         private bool CanSplit(int id)
@@ -520,6 +530,12 @@ namespace Cards
             if (!currentHand.IsActive)
             {
                 _activeHands.Remove(id);
+                
+            }
+            if (_activeHands.Count == 1 || _activeHands.Count == 0)
+            {
+                UpdateAllButtons();
+                return;
             }
             if(!currentHand.IsSplit && currentHand is Player player)
             {
