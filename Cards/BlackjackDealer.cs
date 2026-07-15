@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cards.Enums;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -20,7 +21,7 @@ namespace Cards
             this.deal = deal;
             this.deck = deck;
         }
-        public Card Deal() 
+        public Card Deal()
         {
             int r = deal.Next(0, deck.CurrentSize-1);
             Card c = deck.Cards.ElementAt(r);

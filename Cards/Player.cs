@@ -61,17 +61,10 @@ namespace Cards
                 } 
                 else
                 {
-                    if(c2.FaceCardType != null)
+                    if (c1.Value == c2.Value)
                     {
-                        if(c1.Value == c2.Value)
-                        {
-                            return true;
-                        } 
-                        else
-                        {
-                            return false;
-                        }
-                    } 
+                        return true;
+                    }
                     else
                     {
                         return false;

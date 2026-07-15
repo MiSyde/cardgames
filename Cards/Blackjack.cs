@@ -174,6 +174,7 @@ namespace Cards
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             if (hand.IsSplit || hand is not Player player) return false;
+            if (player.DidSplit) return false;
 
             return player.CanSplit() && player.Id == _currentHandId && player.IsActive;
         }
@@ -377,16 +378,8 @@ namespace Cards
             IHand? currentHand = GetHand(id);
             if (currentHand == null || !currentHand.IsActive) return;
             Card newCard = _dealer.Deal();
-            if (currentHand.IsSplit)
-            {
-                Split? current = currentHand as Split;
-                current?.CurrentCards.Add(newCard);
-            }
-            else
-            {
-                Player? current = currentHand as Player;
-                current?.CurrentCards.Add(newCard);
-            }
+            Generic? player = currentHand as Generic;
+            player?.CurrentCards.Add(newCard);
         }
 
         public void Hit(int id)
@@ -410,13 +403,14 @@ namespace Cards
             if (hand == null || hand.IsSplit) return;
 
             Player? p = hand as Player;
+            p.DidSplit = true;
             Card c = p.CurrentCards[1];
             p.CurrentCards.RemoveAt(1);
 
             int splitId = _nextHandId++;
-            Split newSplit = new(c, id, p);
+            Split newSplit = new(c, splitId, p);
             _hands[splitId] = newSplit;
-            _buttons[splitId] = GenerateButtons(id);
+            _buttons[splitId] = GenerateButtons(splitId);
             newSplit.Buttons = _buttons[splitId];
             p.SplitId = splitId;
             int currentIndex = _activeHands.IndexOf(id);
@@ -502,16 +496,8 @@ namespace Cards
         public void Stand(int id)
         {
             IHand? currentHand = GetHand(id);
-            if (currentHand.IsSplit)
-            {
-                Split? current = currentHand as Split;
-                current.IsActive = false;
-            }
-            else
-            {
-                Player? current = currentHand as Player;
-                current.IsActive = false;
-            }
+            Generic? player = currentHand as Generic;
+            player.IsActive = false;
             AdvancePlayerIdx(id);
         }
 
