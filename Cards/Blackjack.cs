@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Cards
 {
-    partial class Blackjack : INotifyPropertyChanged
+    partial class Blackjack
     {
         private BlackjackDealer _dealer;
         public BlackjackDealer Dealer => _dealer;
@@ -30,9 +30,22 @@ namespace Cards
         public int CurrentHandId => _currentHandId;
         private int _nextHandId;
         private bool _joinable;
-        public event PropertyChangedEventHandler? PropertyChanged;
         private int _playerCount;
         private bool _over;
+        private bool _beforeStart;
+        public bool BeforeStart
+        {
+            get => _beforeStart;
+            set
+            {
+                if (_beforeStart != value)
+                {
+                    _beforeStart = value;
+                    HandleBetBoxes();
+                }
+            }
+        }
+      
         public bool Over
         {
             get => _over;
@@ -41,7 +54,6 @@ namespace Cards
                 if (_over != value)
                 {
                     _over = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Over)));
                 }
             }
         }
@@ -62,16 +74,26 @@ namespace Cards
             _nextHandId = 1;
             _activeHands = new();
             _over = false;
+            _beforeStart = true;
         }
 
         public void StartGame()
         {
             _joinable = false;
-
+            BeforeStart = false;
             _activeHands = new ObservableCollection<int>(_hands.Keys);
             _activeHands.CollectionChanged += PlayerExited;
             Over = false;
             _dealer.Draw();
+            foreach(IHand hand in _hands.Values)
+            {
+                Player? p = hand as Player;
+                p?.CurrentCards.Add(_dealer.Deal());
+                int.TryParse(p.BetBox.Text, out int bet);
+                p.Bet = bet;
+                p.Chips -= bet;
+                
+            }
             UpdateButtonsForHand(_currentHandId);
         }
         private void UpdateAllButtons()
@@ -95,7 +117,14 @@ namespace Cards
                 }
             }
         }
-
+        private void HandleBetBoxes()
+        {
+            foreach(IHand hand in _hands.Values)
+            {
+                Generic? g = hand as Generic;
+                g.BetBox.IsEnabled = !g.BetBox.IsEnabled;
+            }
+        }
         private List<Button> GenerateButtons(int handId)
         {
             List<Button> list = new();
@@ -501,11 +530,13 @@ namespace Cards
             AdvancePlayerIdx(id);
         }
 
-        public int AddPlayer()
+        public int AddPlayer(string chipsText)
         {
             int id = _nextHandId++;
             List<Button> actionButtons = GenerateButtons(id);
             Player newPlayer = new(id);
+            int.TryParse(chipsText, out int chips);
+            newPlayer.Chips = chips;
             _hands[id] = newPlayer;
             _activeHands.Add(id);
             _buttons[id] = actionButtons;
@@ -527,8 +558,13 @@ namespace Cards
                 _activeHands.Remove(id);
             }
 
-            if (_activeHands.Count == 1 || _activeHands.Count == 0)
+            if (_activeHands.Count == 1)
             {
+                _currentHandId = _activeHands[0];
+                UpdateAllButtons();
+                return;
+            }
+            else if (_activeHands.Count == 0) {
                 UpdateAllButtons();
                 return;
             }
@@ -563,6 +599,11 @@ namespace Cards
             _currentHandId = nextIndex < _activeHands.Count ? _activeHands[nextIndex] : _activeHands[0];
 
             UpdateAllButtons();
+        }
+        
+        public void NextGame()
+        {
+            Dealer.ResetDeck();
         }
     }
 }

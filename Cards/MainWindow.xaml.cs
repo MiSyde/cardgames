@@ -1,4 +1,5 @@
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
@@ -11,9 +12,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using System.Xml.Linq;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
+using WinRT.Interop;
 
 namespace Cards
 {
@@ -24,20 +28,73 @@ namespace Cards
         RelayCommand StartGameCommand;
         Thickness defaultThickness;
         Dictionary<int, int> handColumns;
+        string _text;
+        string Text
+        {
+            get => _text;
+            set
+            {
+                if(_text != value)
+                {
+                    _text = value;
+                    AddPlayerCommand.NotifyCanExecuteChanged();
+                }
+            }
+        }
         public MainWindow()
         {
             game = new();
+            _text = string.Empty;
             InitializeComponent();
-            AddPlayerCommand = new RelayCommand(AddPlayer, () => game.Joinable);
-            StartGameCommand = new RelayCommand(StartGame, () => game.PlayerCount >= 1 && game.Joinable);
+            //_ = SetIconAsync();
+            AddPlayerCommand = new RelayCommand(AddPlayer, CanAddPlayer);
+            StartGameCommand = new RelayCommand(StartGame, CanStartGame);
             defaultThickness = new Thickness(5, 5, 5, 5);
             handColumns = new();
+        }
+        private async Task SetIconAsync()
+        {
+            Uri uri = new Uri("ms-appx:///Assets/logo.ico");
+            StorageFile? storageFile = null;
+            try
+            {
+                storageFile = await StorageFile.GetFileFromApplicationUriAsync(uri);
+            }
+            catch (Exception ex)
+            {
+                // Use default icon.
+            }
+
+            if (storageFile is not null)
+            {
+                this?.AppWindow.SetIcon(storageFile.Path);
+            }
+        }
+
+        private bool CanAddPlayer()
+        {
+            return game.Joinable && ChipsBox.Text != string.Empty;
+        }
+
+        private bool CanStartGame()
+        {
+            foreach(IHand hand in game.Hands.Values)
+            {
+                Player? p = hand as Player;
+                int.TryParse(p?.BetBox.Text, out int bet);
+                if (bet > p?.Chips || p?.BetBox.Text == string.Empty) 
+                {
+                    p.BetBox.Text = string.Empty;
+                    return false; 
+                }
+            }
+            return game.PlayerCount >= 1 && game.Joinable;
         }
 
         private void StartGame()
         {
             game.StartGame();
-            DealerCardBlock(game.Dealer.CardVisualBlock);
+            DealerCardBlock(game.Dealer.CardGrid);
             AddPlayerCommand.NotifyCanExecuteChanged();
             StartGameCommand.NotifyCanExecuteChanged();
             game.ActiveHands.CollectionChanged += SplitWatcher;
@@ -45,7 +102,7 @@ namespace Cards
         // !
         private void ContinueGame_Click(object sender, RoutedEventArgs e)
         {
-
+            game.NextGame();
         }
 
         private void SplitWatcher(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -69,7 +126,11 @@ namespace Cards
 
                     if (game.Hands.TryGetValue(handId, out IHand? existingHand) && existingHand is Generic existingGeneric)
                     {
-                        Grid.SetColumn(existingGeneric.CardVisualBlock, shiftedColumn);
+                        Grid.SetColumn(existingGeneric.CardGrid, shiftedColumn);
+                        if (!existingHand.IsSplit)
+                            Grid.SetColumn(existingGeneric.ChipsGrid, shiftedColumn);
+                        else
+                            Grid.SetColumn(existingGeneric.BetBox, shiftedColumn);
                     }
                     List<Button>? shiftedButtons = game.Buttons.GetValueOrDefault(handId);
                     if (shiftedButtons != null)
@@ -86,7 +147,7 @@ namespace Cards
 
                 if (game.Hands.TryGetValue(newHandId, out IHand? newHand) && newHand is Generic newGeneric)
                 {
-                    DefaultObject(newGeneric.CardVisualBlock, newColumn, 1);
+                    DefaultObject(newGeneric.CardGrid, newColumn, 1);
                 }
                 List<Button>? newButtons = game.Buttons.GetValueOrDefault(newHandId);
                 if (newButtons != null)
@@ -99,7 +160,7 @@ namespace Cards
                 }
             }
 
-            Grid.SetColumnSpan(game.Dealer.CardVisualBlock, Grid.GetColumnSpan(MainGrid));
+            Grid.SetColumnSpan(game.Dealer.CardGrid, Grid.GetColumnSpan(MainGrid));
 
             game.AdvanceAfterSplitEvent();
         }
@@ -109,7 +170,7 @@ namespace Cards
             ColumnDefinition Column = new();
             MainGrid.ColumnDefinitions.Add(Column);
 
-            int id = game.AddPlayer();
+            int id = game.AddPlayer(ChipsBox.Text);
             int column = game.PlayerCount - 1;
 
             List<Button>? buttons = game.Buttons.GetValueOrDefault(id);
@@ -117,17 +178,23 @@ namespace Cards
             handColumns[id] = column;
 
             Generic? g = hand as Generic;
-            TextBlock textBlock = g.CardVisualBlock;
+            int i = 1;
+            DefaultObject(g.CardGrid, column, i++);
 
-            DefaultObject(textBlock, column, 1);
             if (buttons != null)
             {
-                int i = 2;
                 foreach(Button b in buttons)
                 {
                     DefaultObject(b, column, i++);
                 }
             }
+
+            DefaultObject(g.ChipsGrid, column, i);
+
+            Grid.SetColumnSpan(game.Dealer.CardGrid, Grid.GetColumnSpan(MainGrid));
+
+            ChipsBox.Text = string.Empty;
+            g.BetBox.TextChanged += TextBox_TextChanged;
 
             StartGameCommand.NotifyCanExecuteChanged();
         }
@@ -151,6 +218,16 @@ namespace Cards
             UIelement.Margin = defaultThickness;
             UIelement.HorizontalAlignment = HorizontalAlignment.Center;
             UIelement.VerticalAlignment = VerticalAlignment.Center;
+        }
+
+        private void TextBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            TextBox? textBox = sender as TextBox;
+            if (System.Text.RegularExpressions.Regex.IsMatch(textBox.Text, "[^0-9]"))
+            {
+                textBox.Text = textBox.Text.Remove(textBox.Text.Length - 1);
+            }
+            if (textBox.Tag.ToString() == "Bet") StartGameCommand.NotifyCanExecuteChanged();
         }
     }
 }

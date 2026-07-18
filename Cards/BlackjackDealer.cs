@@ -39,6 +39,16 @@ namespace Cards
             if (CardScore <= 15) FinishDrawing();
             return;
         }
+
+        public void ResetDeck()
+        {
+            deck = new();
+        }
+
+        public override void SetUpChipsGrid()
+        {
+            throw new NotImplementedException();
+        }
     }
 
 }

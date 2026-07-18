@@ -1,17 +1,20 @@
 ﻿using Cards.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Controls.Primitives;
+using Microsoft.UI.Xaml.Data;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Cards
 {
-    public class Player : Generic
+    public class Player : Generic, INotifyPropertyChanged
     {
         public new bool IsSplit => false;
         public new int PlayerId => Id;
@@ -20,12 +23,26 @@ namespace Cards
         public int SplitId { get { return _splitId; } set { _splitId = value; } }
         private bool _didSplit;
         public bool DidSplit { get { return _didSplit; } set { _didSplit = value; } }
+        private TextBlock _chipsBox;
 
-        public int Chips { get { return _chips; } set { _chips = value; } }
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        public TextBlock ChipsBox => _chipsBox;
+        public int Chips 
+        {
+            get => _chips;
+            set { 
+                if(_chips != value)
+                {
+                    _chips = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Chips)));
+                }
+            } 
+        }
 
         public Player(int i) : base()
         {
-            
+            SetUpChipsGrid();
             Id = i;
             IsActive = true;
             DidSplit = false;
@@ -74,6 +91,38 @@ namespace Cards
             {
                 return false;
             }
+        }
+
+        public override void SetUpChipsGrid()
+        {
+            ChipsGrid = new();
+
+            _betBox = new();
+            _betBox.TextAlignment = Microsoft.UI.Xaml.TextAlignment.Center;
+            _chipsBox = new();
+            _chipsBox.TextAlignment = Microsoft.UI.Xaml.TextAlignment.Center;
+            _betBox.Tag = "Bet";
+
+            Binding chipsBinding = new Binding
+            {
+                Source = this,
+                Path = new PropertyPath(nameof(Chips)),
+                Mode = BindingMode.OneWay
+            };
+
+            _chipsBox.SetBinding(TextBlock.TextProperty, chipsBinding);
+
+            RowDefinition chipsRow = new();
+            RowDefinition betRow = new();
+
+            ChipsGrid.RowDefinitions.Add(chipsRow);
+            ChipsGrid.RowDefinitions.Add(betRow);
+
+            Grid.SetRow(_chipsBox, 0);
+            Grid.SetRow(_betBox, 1);
+
+            ChipsGrid.Children.Add(_chipsBox);
+            ChipsGrid.Children.Add(_betBox);
         }
     }
 }

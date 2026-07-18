@@ -23,13 +23,15 @@
             <RowDefinition x:Name="SurrenderButtonRow" Height="Auto"/>
             <RowDefinition x:Name="InsuranceButtonRow" Height="Auto"/>
             <RowDefinition x:Name="SplitButtonRow" Height="Auto"/>
+            <RowDefinition x:Name="BetAndChipsRow" Height="Auto"/>
         </Grid.RowDefinitions>
-        
+
         <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical">
-            <Button Content="Add player" Command="{x:Bind AddPlayerCommand}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
-            <Button Content="Start game" Command="{x:Bind StartGameCommand}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <Button Content="Add player" Command="{x:Bind AddPlayerCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <TextBox Tag="Chips" Name="ChipsBox" TextChanged="TextBox_TextChanged" Text="{x:Bind Text, Mode=TwoWay}" PlaceholderText="Player's chips" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <Button Content="Start game" Command="{x:Bind StartGameCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
             <Button Content="Continue" Click="ContinueGame_Click" Visibility="{x:Bind game.Over, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
         </StackPanel>
-        
+
     </Grid>
 </Window>
