@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards.Enums
+namespace Cards
 {
     public static class Helper
     {

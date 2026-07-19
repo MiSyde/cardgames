@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="Cards.BlackjackPage"
+    xmlns:model="using:Cards.Models"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:Cards"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid x:Name="MainGrid">
+        <Grid.RowDefinitions>
+            <RowDefinition x:Name="AddPlayerRow" Height="Auto"/>
+            <RowDefinition x:Name="ROG" Height="*"/>
+        </Grid.RowDefinitions>
+
+        
+        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical">
+            <Button Content="Add player" Command="{x:Bind AddPlayerCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <TextBox Tag="Chips" Name="ChipsBox" TextChanged="TextBox_TextChanged" Text="{x:Bind Text, Mode=TwoWay}" PlaceholderText="Player's chips" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <Button Content="Start game" Command="{x:Bind StartGameCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+            <Button Content="Continue" Click="ContinueGame_Click" Visibility="{x:Bind game.Over, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+        </StackPanel>
+
+        <ListView ItemsSource="{x:Bind game.Hands}" Grid.Column="0" Grid.Row="1">
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal"/>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+            <ListView.ItemTemplate>
+                <DataTemplate x:DataType="model:Generic">
+                    <StackPanel Orientation="Vertical">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <ListView ItemsSource="{x:Bind CardImages}" Grid.Column="0" Grid.Row="0">
+                                <ListView.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <StackPanel Orientation="Horizontal"/>
+                                    </ItemsPanelTemplate>
+                                </ListView.ItemsPanel>
+                                <ListView.ItemTemplate>
+                                    <DataTemplate x:DataType="ImageSource">
+                                        <Image Source="{x:Bind}" Height = "201" Width = "150" Margin="2"/>
+                                    </DataTemplate>
+                                </ListView.ItemTemplate>
+                            </ListView>
+                            <TextBlock Text="{x:Bind CardScore}" Grid.Column="0" Grid.Row="1"/>
+                        </Grid>
+                        <Button Content="Hit" Command="{x:Bind HitCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Button Content="Double Down" Command="{x:Bind DoubleDownCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Button Content="Stand" Command="{x:Bind StandCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Button Content="Surrender" Command="{x:Bind SurrenderCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Button Content="Insure" Command="{x:Bind InsureCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Button Content="Split" Command="{x:Bind SplitCommand}" CommandParameter="{x:Bind PlayerId}"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <TextBlock Text="{x:Bind Chips, Mode=TwoWay}" Visibility="{x:Bind IsSplit, Mode=OneWay}"/>
+                            <TextBox Text="{x:Bind Bet, Mode=TwoWay}" Tag="Bet" TextChanged="TextBox_TextChanged" IsEnabled="{}"/>
+                        </Grid>
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+    </Grid>
+</Page>

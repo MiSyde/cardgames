@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards
+namespace Cards.Models
 {
     public class Split : Generic
     {
@@ -15,16 +15,16 @@ namespace Cards
 
         private Player _player;
         public Player Player { get { return _player; } }
-        public Split(Card c, int i, Player p) : base() 
+        public Split(Card c, int i, Player p, Blackjack b) : base(b) 
         {
-            SetUpChipsGrid();
+            //SetUpChipsGrid();
             CurrentCards.Add(c);
             IsActive = true;
             Id = i; 
             _player = p; 
             PlayerId = p.PlayerId; 
         }
-
+        /*
         public override void SetUpChipsGrid()
         {
             ChipsGrid = new();
@@ -41,5 +41,6 @@ namespace Cards
 
             ChipsGrid.Children.Add(_betBox);
         }
+        */
     }
 }

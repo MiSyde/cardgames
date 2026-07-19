@@ -6,6 +6,7 @@
     xmlns:local="using:Cards"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
     mc:Ignorable="d"
     Title="Cards">
 
@@ -13,25 +14,13 @@
         <MicaBackdrop />
     </Window.SystemBackdrop>
 
-    <Grid x:Name="MainGrid">
-        <Grid.RowDefinitions>
-            <RowDefinition x:Name="AddPlayerRow" Height="Auto"/>
-            <RowDefinition x:Name="CardRow" Height="*"/>
-            <RowDefinition x:Name="HitButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="StandButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="DoubleDownButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="SurrenderButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="InsuranceButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="SplitButtonRow" Height="Auto"/>
-            <RowDefinition x:Name="BetAndChipsRow" Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical">
-            <Button Content="Add player" Command="{x:Bind AddPlayerCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
-            <TextBox Tag="Chips" Name="ChipsBox" TextChanged="TextBox_TextChanged" Text="{x:Bind Text, Mode=TwoWay}" PlaceholderText="Player's chips" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
-            <Button Content="Start game" Command="{x:Bind StartGameCommand}" Visibility="{x:Bind game.BeforeStart, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
-            <Button Content="Continue" Click="ContinueGame_Click" Visibility="{x:Bind game.Over, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
+    <controls:DockPanel LastChildFill="True">
+        <StackPanel controls:DockPanel.Dock="Top"  Orientation="Horizontal">
+            <Button Content="Blackjack" Click="ShowBlackjack" Visibility="{x:Bind GameButtonsVisibility, Mode=OneWay}"/>
+            <Button Content="Back" Click="Back" Visibility="{x:Bind BackButtonVisibility, Mode=OneWay}"/>
+            <Button Content="Close" Click="Close"/>
         </StackPanel>
-
-    </Grid>
+        <Frame x:Name="MainFrame"/>
+    </controls:DockPanel>
+    
 </Window>

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards
+namespace Cards.Models
 {
     public interface IHand
     {
@@ -13,7 +13,9 @@ namespace Cards
         bool IsActive { get; set; }
         bool IsSplit { get; }
         int PlayerId { get; }
+        /*
         List<Button> GetButtons();
         void UpdateButtons();
+        */
     }
 }

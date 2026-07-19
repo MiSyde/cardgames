@@ -1,7 +1,7 @@
 ﻿using Cards.Enums;
 using System;
 
-namespace Cards
+namespace Cards.Models
 {
     public class Card
     {

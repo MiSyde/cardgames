@@ -13,15 +13,17 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards
+namespace Cards.Models
 {
-    partial class Blackjack
+    public class Blackjack
     {
         private BlackjackDealer _dealer;
         public BlackjackDealer Dealer => _dealer;
+        /*
         // Hit, Stand, Double Down, Surrender, Insurance, Split 
         private Dictionary<int, List<Button>> _buttons;
         public Dictionary<int, List<Button>> Buttons => _buttons;
+        */
         private Dictionary<int, IHand> _hands;
         public Dictionary<int, IHand> Hands => _hands;
         private ObservableCollection<int> _activeHands;
@@ -66,9 +68,9 @@ namespace Cards
         public bool Joinable => _joinable;
         public Blackjack()
         {
-            _dealer = new BlackjackDealer(new Random(), new Deck());
+            _dealer = new BlackjackDealer(new Random(), new Deck(), this);
             _hands = new();
-            _buttons = new();
+            // _buttons = new();
             _joinable = true;
             _currentHandId = 1;
             _nextHandId = 1;
@@ -87,11 +89,14 @@ namespace Cards
             _dealer.Draw();
             foreach(IHand hand in _hands.Values)
             {
+                // BlackjackPage-n keresztül átadni a boxok értékeit
                 Player? p = hand as Player;
                 p?.CurrentCards.Add(_dealer.Deal());
+                /*
                 int.TryParse(p.BetBox.Text, out int bet);
                 p.Bet = bet;
                 p.Chips -= bet;
+                */
                 
             }
             UpdateButtonsForHand(_currentHandId);
@@ -106,74 +111,26 @@ namespace Cards
 
         private void UpdateButtonsForHand(int id)
         {
-            if (!_buttons.TryGetValue(id, out List<Button>? buttons)) return;
-            if (!_hands.TryGetValue(id, out _)) return;
-
-            foreach (Button btn in buttons)
-            {
-                if (btn.Command is RelayCommand<int> command)
-                {
-                    command.NotifyCanExecuteChanged();
-                }
-            }
+            if (!_hands.TryGetValue(id, out IHand? hand)) return;
+            Generic? g = hand as Generic;
+            g?.UpdateCommands();
         }
         private void HandleBetBoxes()
         {
             foreach(IHand hand in _hands.Values)
             {
                 Generic? g = hand as Generic;
-                g.BetBox.IsEnabled = !g.BetBox.IsEnabled;
+                // Genericen belül betbox notifyproperty !
             }
         }
-        private List<Button> GenerateButtons(int handId)
-        {
-            List<Button> list = new();
 
-            Button HitB = new();
-            HitB.Content = "Hit";
-            HitB.Command = new RelayCommand<int>(id => Hit(id), id => CanAct(id));
-            HitB.CommandParameter = handId;
-            list.Add(HitB);
-
-            Button StandB = new();
-            StandB.Content = "Stand";
-            StandB.Command = new RelayCommand<int>(id => Stand(id), id => CanAct(id));
-            StandB.CommandParameter = handId;
-            list.Add(StandB);
-
-            Button DoubleDownB = new();
-            DoubleDownB.Content = "Double Down";
-            DoubleDownB.Command = new RelayCommand<int>(id => DoubleDown(id), id => CanAct(id));
-            DoubleDownB.CommandParameter = handId;
-            list.Add(DoubleDownB);
-
-            Button SurrenderB = new();
-            SurrenderB.Content = "Surrender";
-            SurrenderB.Command = new RelayCommand<int>(id => Surrender(id), id => CanSurrender(id));
-            SurrenderB.CommandParameter = handId;
-            list.Add(SurrenderB);
-
-            Button InsuranceB = new();
-            InsuranceB.Content = "Insurance";
-            InsuranceB.Command = new RelayCommand<int>(id => Insurance(id), id => CanInsure(id));
-            InsuranceB.CommandParameter = handId;
-            list.Add(InsuranceB);
-
-            Button SplitB = new();
-            SplitB.Content = "Split";
-            SplitB.Command = new RelayCommand<int>(id => Split(id), id => CanSplit(id));
-            SplitB.CommandParameter = handId;
-            list.Add(SplitB);
-
-            return list;
-        }
-        private bool CanAct(int id)
+        public bool CanAct(int id)
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             return hand.IsActive && hand.Id == _currentHandId;
         }
 
-        private bool CanInsure(int id)
+        public bool CanInsure(int id)
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             if (_dealer.CurrentCards.Count != 1) return false;
@@ -182,7 +139,7 @@ namespace Cards
             return c.IsFaceCard && c.FaceCardType is FaceCard.Ace && hand.IsActive && hand.Id == _currentHandId;
         }
 
-        private bool CanSurrender(int id)
+        public bool CanSurrender(int id)
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             Generic? g = hand as Generic;
@@ -199,7 +156,7 @@ namespace Cards
                 Over = true;
             }
         }
-        private bool CanSplit(int id)
+        public bool CanSplit(int id)
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             if (hand.IsSplit || hand is not Player player) return false;
@@ -437,10 +394,10 @@ namespace Cards
             p.CurrentCards.RemoveAt(1);
 
             int splitId = _nextHandId++;
-            Split newSplit = new(c, splitId, p);
+            Split newSplit = new(c, splitId, p, this);
             _hands[splitId] = newSplit;
-            _buttons[splitId] = GenerateButtons(splitId);
-            newSplit.Buttons = _buttons[splitId];
+            //_buttons[splitId] = GenerateButtons(splitId);
+            //newSplit.Buttons = _buttons[splitId];
             p.SplitId = splitId;
             int currentIndex = _activeHands.IndexOf(id);
             if (currentIndex >= 0)
@@ -533,14 +490,14 @@ namespace Cards
         public int AddPlayer(string chipsText)
         {
             int id = _nextHandId++;
-            List<Button> actionButtons = GenerateButtons(id);
-            Player newPlayer = new(id);
+            //List<Button> actionButtons = GenerateButtons(id);
+            Player newPlayer = new(id, this);
             int.TryParse(chipsText, out int chips);
             newPlayer.Chips = chips;
             _hands[id] = newPlayer;
             _activeHands.Add(id);
-            _buttons[id] = actionButtons;
-            newPlayer.Buttons = actionButtons;
+            //_buttons[id] = actionButtons;
+            //newPlayer.Buttons = actionButtons;
             PlayerCount++;
             return id;
         }

@@ -12,37 +12,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards
+namespace Cards.Models
 {
-    public class Player : Generic, INotifyPropertyChanged
+    public class Player : Generic
     {
         public new bool IsSplit => false;
         public new int PlayerId => Id;
-        private int _chips;
-        private int _splitId;
-        public int SplitId { get { return _splitId; } set { _splitId = value; } }
         private bool _didSplit;
-        public bool DidSplit { get { return _didSplit; } set { _didSplit = value; } }
-        private TextBlock _chipsBox;
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        public TextBlock ChipsBox => _chipsBox;
-        public int Chips 
+        public bool DidSplit 
         {
-            get => _chips;
-            set { 
-                if(_chips != value)
-                {
-                    _chips = value;
-                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Chips)));
-                }
-            } 
+            get => _didSplit; 
+            set { _didSplit = value; } 
+        }
+        private int _splitId;
+        public int SplitId
+        {
+            get => _splitId;
+            set { _splitId = value; }
         }
 
-        public Player(int i) : base()
+        public Player(int i, Blackjack b) : base(b)
         {
-            SetUpChipsGrid();
+            //SetUpChipsGrid();
             Id = i;
             IsActive = true;
             DidSplit = false;
@@ -92,7 +83,7 @@ namespace Cards
                 return false;
             }
         }
-
+        /*
         public override void SetUpChipsGrid()
         {
             ChipsGrid = new();
@@ -124,5 +115,6 @@ namespace Cards
             ChipsGrid.Children.Add(_chipsBox);
             ChipsGrid.Children.Add(_betBox);
         }
+        */
     }
 }

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cards
+namespace Cards.Models
 {
     public class BlackjackDealer : Generic
     {
@@ -16,7 +16,7 @@ namespace Cards
         public new bool IsSplit => false;
         public int Chips { get { return chips; } set { chips = value; } }
 
-        public BlackjackDealer(Random deal, Deck deck) : base()
+        public BlackjackDealer(Random deal, Deck deck, Blackjack b) : base(b)
         { 
             this.deal = deal;
             this.deck = deck;
@@ -43,11 +43,6 @@ namespace Cards
         public void ResetDeck()
         {
             deck = new();
-        }
-
-        public override void SetUpChipsGrid()
-        {
-            throw new NotImplementedException();
         }
     }
 
