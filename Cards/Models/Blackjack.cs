@@ -17,13 +17,9 @@ namespace Cards.Models
 {
     public class Blackjack
     {
+        public ObservableCollection<Generic> HandsListForUI;
         private BlackjackDealer _dealer;
         public BlackjackDealer Dealer => _dealer;
-        /*
-        // Hit, Stand, Double Down, Surrender, Insurance, Split 
-        private Dictionary<int, List<Button>> _buttons;
-        public Dictionary<int, List<Button>> Buttons => _buttons;
-        */
         private Dictionary<int, IHand> _hands;
         public Dictionary<int, IHand> Hands => _hands;
         private ObservableCollection<int> _activeHands;
@@ -43,11 +39,9 @@ namespace Cards.Models
                 if (_beforeStart != value)
                 {
                     _beforeStart = value;
-                    HandleBetBoxes();
                 }
             }
         }
-      
         public bool Over
         {
             get => _over;
@@ -68,36 +62,40 @@ namespace Cards.Models
         public bool Joinable => _joinable;
         public Blackjack()
         {
+            HandsListForUI = new();
             _dealer = new BlackjackDealer(new Random(), new Deck(), this);
             _hands = new();
-            // _buttons = new();
             _joinable = true;
-            _currentHandId = 1;
+            _currentHandId = 0;
             _nextHandId = 1;
             _activeHands = new();
             _over = false;
             _beforeStart = true;
         }
 
+        public bool ReadyToStart()
+        {
+            foreach(IHand hand in _hands.Values)
+            {
+                Generic? g = hand as Generic;
+                if (g.Bet <= 0) return false;
+            }
+            return true;
+        }
+
         public void StartGame()
         {
+            _currentHandId = 1;
             _joinable = false;
             BeforeStart = false;
             _activeHands = new ObservableCollection<int>(_hands.Keys);
             _activeHands.CollectionChanged += PlayerExited;
             Over = false;
             _dealer.Draw();
-            foreach(IHand hand in _hands.Values)
+            foreach(Generic g in HandsListForUI)
             {
-                // BlackjackPage-n keresztül átadni a boxok értékeit
-                Player? p = hand as Player;
-                p?.CurrentCards.Add(_dealer.Deal());
-                /*
-                int.TryParse(p.BetBox.Text, out int bet);
-                p.Bet = bet;
-                p.Chips -= bet;
-                */
-                
+                g.Chips -= g.Bet;
+                g.CanChangeBet = false;
             }
             UpdateButtonsForHand(_currentHandId);
         }
@@ -114,14 +112,6 @@ namespace Cards.Models
             if (!_hands.TryGetValue(id, out IHand? hand)) return;
             Generic? g = hand as Generic;
             g?.UpdateCommands();
-        }
-        private void HandleBetBoxes()
-        {
-            foreach(IHand hand in _hands.Values)
-            {
-                Generic? g = hand as Generic;
-                // Genericen belül betbox notifyproperty !
-            }
         }
 
         public bool CanAct(int id)
@@ -160,7 +150,7 @@ namespace Cards.Models
         {
             if (!_hands.TryGetValue(id, out IHand? hand)) return false;
             if (hand.IsSplit || hand is not Player player) return false;
-            if (player.DidSplit) return false;
+            if (player.DidSplit || player.Chips == 0) return false;
 
             return player.CanSplit() && player.Id == _currentHandId && player.IsActive;
         }
@@ -392,22 +382,32 @@ namespace Cards.Models
             p.DidSplit = true;
             Card c = p.CurrentCards[1];
             p.CurrentCards.RemoveAt(1);
-
             int splitId = _nextHandId++;
             Split newSplit = new(c, splitId, p, this);
             _hands[splitId] = newSplit;
-            //_buttons[splitId] = GenerateButtons(splitId);
-            //newSplit.Buttons = _buttons[splitId];
             p.SplitId = splitId;
             int currentIndex = _activeHands.IndexOf(id);
+            if(p.Chips < p.Bet)
+            {
+                newSplit.Bet = p.Chips;
+                p.Chips -= newSplit.Bet;
+            } else
+            {
+                newSplit.Bet = p.Bet;
+                p.Chips -= newSplit.Bet;
+            }
+
             if (currentIndex >= 0)
             {
+                HandsListForUI.Insert(currentIndex +1, newSplit);
                 _activeHands.Insert(currentIndex + 1, splitId);
             }
             else
             {
                 _activeHands.Add(splitId);
+                HandsListForUI.Add(newSplit);
             }
+            AdvanceAfterSplitEvent();
             UpdateButtonsForHand(id);
             UpdateButtonsForHand(splitId);
             PlayerCount++;
@@ -490,15 +490,13 @@ namespace Cards.Models
         public int AddPlayer(string chipsText)
         {
             int id = _nextHandId++;
-            //List<Button> actionButtons = GenerateButtons(id);
             Player newPlayer = new(id, this);
             int.TryParse(chipsText, out int chips);
             newPlayer.Chips = chips;
             _hands[id] = newPlayer;
             _activeHands.Add(id);
-            //_buttons[id] = actionButtons;
-            //newPlayer.Buttons = actionButtons;
             PlayerCount++;
+            HandsListForUI.Add(newPlayer);
             return id;
         }
 

@@ -1,6 +1,8 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
+using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Media.Imaging;
 using System;
 using System.Collections.Generic;
@@ -14,8 +16,9 @@ using Windows.Gaming.UI;
 
 namespace Cards.Models
 {
-    public class Generic : IHand, INotifyPropertyChanged
+    public partial class Generic : IHand, INotifyPropertyChanged
     {
+        public virtual Visibility ChipsBoxVisibility { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
         public RelayCommand<int> HitCommand;
         public RelayCommand<int> StandCommand;
@@ -26,28 +29,48 @@ namespace Cards.Models
         List<RelayCommand<int>> Commands;
         private ObservableCollection<Card> currentCards;
         public ObservableCollection<Card> CurrentCards => currentCards;
-        public ObservableCollection<Image> CardImages { get; }
-        /*
-        private List<Button> _buttons = new();
-        public List<Button> Buttons { get => _buttons; set => _buttons = value; }
-        */
+        public ObservableCollection<ImageSource> CardImages { get; }
+        private bool _canChangeBet;
+        public bool CanChangeBet
+        {
+            get => _canChangeBet;
+            set
+            {
+                if(_canChangeBet != value)
+                {
+                    _canChangeBet = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanChangeBet)));
+                }
+            }
+        }
         private int roundBet;
         public int Bet 
         { 
             get => roundBet; 
-            set { roundBet = value; } 
+            set { 
+                roundBet = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Bet)));
+            } 
         }
         private int cardScore;
         public int CardScore 
         {
             get => cardScore;
-            set { cardScore = value; } 
+            set 
+            { 
+                cardScore = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CardScore)));
+            } 
         }
         private bool twoCardBlackjack;
         public bool TwoCardBlackjack 
         {
             get => twoCardBlackjack;
-            set { twoCardBlackjack = value; } 
+            set 
+            { 
+                twoCardBlackjack = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(TwoCardBlackjack)));
+            } 
         }
         private int _chips;
         public int Chips
@@ -64,24 +87,15 @@ namespace Cards.Models
         }
         public bool IsActive { get; set; }
         public int Id { get; set; }
-        public bool IsSplit { get; }
-        public int PlayerId { get; }
+        public virtual bool IsSplit { get; }
+        public virtual int PlayerId { get; }
         public bool Insured { get; set; }
         public int InsuredBet { get; set; }
         public bool Surrendered { get; set; }
-        /*
-        private StackPanel cardVisualBlock;
-        private TextBlock cardScoreBlock;
-        public Grid CardGrid;
-        protected TextBox _betBox;
-        public TextBox BetBox => _betBox;
-        public Grid ChipsGrid;
-        private TextBlock _chipsBox;
-        public TextBlock ChipsBox => _chipsBox;
-        */
 
         public Generic(Blackjack g)
         {
+            CanChangeBet = true;
             Commands = new();
 
             HitCommand = new RelayCommand<int>((id) => g.Hit(id), (id) => g.CanAct(id));
@@ -107,37 +121,7 @@ namespace Cards.Models
             twoCardBlackjack = false;
             CurrentCards.CollectionChanged += UpdateScore;
             cardScore = 0;
-            //SetUpCardGrid();
         }
-        /*
-        private void SetUpCardGrid()
-        {
-            CardGrid = new();
-
-            cardVisualBlock = new();
-            cardVisualBlock.Orientation = Orientation.Horizontal;
-            cardScoreBlock = new();
-            cardScoreBlock.HorizontalAlignment = Microsoft.UI.Xaml.HorizontalAlignment.Center;
-
-            RowDefinition cardRow = new();
-            cardRow.Height = Microsoft.UI.Xaml.GridLength.Auto;
-            RowDefinition scoreRow = new();
-
-            CardGrid.RowDefinitions.Add(cardRow);
-            CardGrid.RowDefinitions.Add(scoreRow);
-
-            Grid.SetRow(cardVisualBlock, 0);
-            Grid.SetRow(cardScoreBlock, 1);
-
-            CardGrid.Children.Add(cardVisualBlock);
-            CardGrid.Children.Add(cardScoreBlock);
-        }
-        
-        public List<Button> GetButtons()
-        {
-            return _buttons;
-        }
-        */
 
         public void UpdateCommands()
         {
@@ -148,7 +132,7 @@ namespace Cards.Models
         }
         private void UpdateScore(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
         {
-            cardScore = 0;
+            CardScore = 0;
             List<Card> Aces = new();
             foreach (Card c in currentCards)
             {
@@ -160,29 +144,28 @@ namespace Cards.Models
                         continue;
                     }
                 }
-                cardScore += c.Value;
+                CardScore += c.Value;
             }
             for (int i = 0; i < Aces.Count(); ++i)
             {
-                if (cardScore + 10 > 21)
+                if (CardScore + 10 > 21)
                 {
-                    cardScore += 1;
+                    CardScore += 1;
                 }
                 else
                 {
-                    cardScore += 10;
+                    CardScore += 10;
                 }
             }
-            if (cardScore >= 21)
+            if (CardScore >= 21)
             {
                 IsActive = false;
             }
-            if (cardScore == 21 && currentCards.Count == 2)
+            if (CardScore == 21 && currentCards.Count == 2)
             {
-                twoCardBlackjack = true;
+                TwoCardBlackjack = true;
             }
 
-            //cardScoreBlock.Text = cardScore.ToString();
             Handle_Images(e.Action, currentCards.LastOrDefault());
         }
 
@@ -199,9 +182,8 @@ namespace Cards.Models
             }
         }
 
-        private Image Load_Image(Card? c)
+        private ImageSource Load_Image(Card? c)
         {
-            Image img = new();
             BitmapImage bitmapImage = new();
             string CardSuit = c.SuitType.GetDescription();
             string CardValue = string.Empty;
@@ -214,13 +196,8 @@ namespace Cards.Models
                 CardValue = c.Value.ToString();
             }
             bitmapImage.UriSource = new Uri("ms-appx:///Assets/CardImages/" + CardSuit + "/" + CardValue + ".png");
-            img.Source = bitmapImage;
-            img.Height = 201;
-            img.Width = 150;
-            img.Margin = new Microsoft.UI.Xaml.Thickness(3, 3, 3, 3);
-            return img;
+            return bitmapImage;
         }
 
-        
     }
 }

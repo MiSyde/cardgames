@@ -8,13 +8,11 @@ using System.Threading.Tasks;
 
 namespace Cards.Models
 {
-    public class BlackjackDealer : Generic
+    public partial class BlackjackDealer : Generic
     {
         private Random deal;
         private Deck deck;
-        private int chips;
         public new bool IsSplit => false;
-        public int Chips { get { return chips; } set { chips = value; } }
 
         public BlackjackDealer(Random deal, Deck deck, Blackjack b) : base(b)
         { 

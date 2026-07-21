@@ -14,10 +14,10 @@ using System.Threading.Tasks;
 
 namespace Cards.Models
 {
-    public class Player : Generic
+    public partial class Player : Generic
     {
-        public new bool IsSplit => false;
-        public new int PlayerId => Id;
+        public override bool IsSplit => false;
+        public override int PlayerId => Id;
         private bool _didSplit;
         public bool DidSplit 
         {
@@ -33,7 +33,7 @@ namespace Cards.Models
 
         public Player(int i, Blackjack b) : base(b)
         {
-            //SetUpChipsGrid();
+            ChipsBoxVisibility = Visibility.Visible;
             Id = i;
             IsActive = true;
             DidSplit = false;
@@ -83,38 +83,5 @@ namespace Cards.Models
                 return false;
             }
         }
-        /*
-        public override void SetUpChipsGrid()
-        {
-            ChipsGrid = new();
-
-            _betBox = new();
-            _betBox.TextAlignment = Microsoft.UI.Xaml.TextAlignment.Center;
-            _chipsBox = new();
-            _chipsBox.TextAlignment = Microsoft.UI.Xaml.TextAlignment.Center;
-            _betBox.Tag = "Bet";
-
-            Binding chipsBinding = new Binding
-            {
-                Source = this,
-                Path = new PropertyPath(nameof(Chips)),
-                Mode = BindingMode.OneWay
-            };
-
-            _chipsBox.SetBinding(TextBlock.TextProperty, chipsBinding);
-
-            RowDefinition chipsRow = new();
-            RowDefinition betRow = new();
-
-            ChipsGrid.RowDefinitions.Add(chipsRow);
-            ChipsGrid.RowDefinitions.Add(betRow);
-
-            Grid.SetRow(_chipsBox, 0);
-            Grid.SetRow(_betBox, 1);
-
-            ChipsGrid.Children.Add(_chipsBox);
-            ChipsGrid.Children.Add(_betBox);
-        }
-        */
     }
 }

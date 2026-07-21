@@ -13,9 +13,5 @@ namespace Cards.Models
         bool IsActive { get; set; }
         bool IsSplit { get; }
         int PlayerId { get; }
-        /*
-        List<Button> GetButtons();
-        void UpdateButtons();
-        */
     }
 }
