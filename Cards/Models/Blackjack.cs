@@ -94,9 +94,11 @@ namespace Cards.Models
             _dealer.Draw();
             foreach(Generic g in HandsListForUI)
             {
+                g.CurrentCards.Add(_dealer.Deal());
                 g.Chips -= g.Bet;
                 g.CanChangeBet = false;
             }
+            _dealer.CanChangeBet = false;
             UpdateButtonsForHand(_currentHandId);
         }
         private void UpdateAllButtons()
@@ -407,10 +409,8 @@ namespace Cards.Models
                 _activeHands.Add(splitId);
                 HandsListForUI.Add(newSplit);
             }
-            AdvanceAfterSplitEvent();
-            UpdateButtonsForHand(id);
-            UpdateButtonsForHand(splitId);
             PlayerCount++;
+            AdvancePlayerIdx(_currentHandId);
         }
 
         public void Insurance(int id)
@@ -448,11 +448,6 @@ namespace Cards.Models
                 player.Chips -= insurance;
             }
             AdvancePlayerIdx(id);
-        }
-
-        public void AdvanceAfterSplitEvent()
-        {
-            AdvancePlayerIdx(_currentHandId);
         }
 
         public void Surrender(int id)

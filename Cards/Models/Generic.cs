@@ -177,7 +177,7 @@ namespace Cards.Models
             } 
             else
             {
-                if(CurrentCards.Count > 1) 
+                if(CurrentCards.Count > 0) 
                     CardImages.RemoveAt(1);
             }
         }

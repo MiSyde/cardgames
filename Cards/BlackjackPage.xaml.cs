@@ -30,11 +30,8 @@ namespace Cards
             get => _text;
             set
             {
-                if (_text != value)
-                {
-                    _text = value;
-                    AddPlayerCommand.NotifyCanExecuteChanged();
-                }
+                _text = value;
+                AddPlayerCommand.NotifyCanExecuteChanged();
             }
         }
         public BlackjackPage()

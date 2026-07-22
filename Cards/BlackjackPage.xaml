@@ -9,6 +9,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
+    <Page.Resources>
+        <local:ReverseBooleanVisibilityConverter x:Key="Reverse"/>
+    </Page.Resources>
+
     <Grid x:Name="MainGrid">
         <Grid.RowDefinitions>
             <RowDefinition x:Name="AddPlayerRow" Height="Auto"/>
@@ -23,6 +27,23 @@
             <Button Content="Continue" Click="ContinueGame_Click" Visibility="{x:Bind game.Over, Mode=OneWay}" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,5,5,5"/>
         </StackPanel>
 
+        <StackPanel Grid.Column="0" Grid.Row="0" Orientation="Vertical">
+            <ItemsControl ItemsSource="{x:Bind game.Dealer.CardImages, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="ImageSource">
+                        <Image Source="{x:Bind}" Height = "201" Width = "150" Margin="3,3,3,3"/>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="{x:Bind game.Dealer.CardScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="5,5,5,5" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                       Visibility="{x:Bind game.Dealer.CanChangeBet, Mode=OneWay, Converter={StaticResource Reverse}}"/>
+        </StackPanel>
+        
         <ItemsControl ItemsSource="{x:Bind game.HandsListForUI, Mode=OneWay}" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
@@ -31,7 +52,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="model:Generic">
-                    <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Vertical" Margin="10,0,10,0" Padding="10">
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="*"/>
@@ -46,27 +67,28 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate x:DataType="ImageSource">
-                                        <Image Source="{x:Bind}" Height = "201" Width = "150" Margin="3"/>
+                                        <Image Source="{x:Bind}" Height = "201" Width = "150" Margin="3,3,3,3"/>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
-                            <TextBlock Text="{x:Bind CardScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" Grid.Row="1"/>
+                            <TextBlock Text="{x:Bind CardScore, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Column="0" Grid.Row="1" HorizontalAlignment="Center" 
+                                       VerticalAlignment="Center" Visibility="{x:Bind CanChangeBet, Mode=OneWay, Converter={StaticResource Reverse}}"/>
                         </Grid>
-                        <Button Content="Hit" Command="{x:Bind HitCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Content="Double Down" Command="{x:Bind DoubleDownCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Content="Stand" Command="{x:Bind StandCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Content="Surrender" Command="{x:Bind SurrenderCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Content="Insure" Command="{x:Bind InsureCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        <Button Content="Split" Command="{x:Bind SplitCommand}" CommandParameter="{x:Bind PlayerId}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        <Button Content="Hit" Command="{x:Bind HitCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
+                        <Button Content="Double Down" Command="{x:Bind DoubleDownCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
+                        <Button Content="Stand" Command="{x:Bind StandCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
+                        <Button Content="Surrender" Command="{x:Bind SurrenderCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
+                        <Button Content="Insure" Command="{x:Bind InsureCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
+                        <Button Content="Split" Command="{x:Bind SplitCommand}" CommandParameter="{x:Bind Id}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="5,5,5,5"/>
                         <Grid>
                             <Grid.ColumnDefinitions>
-                                <ColumnDefinition/>
-                                <ColumnDefinition/>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="{x:Bind Chips, Mode=TwoWay}" Visibility="{x:Bind ChipsBoxVisibility}" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            <TextBlock Text="{x:Bind Chips, Mode=TwoWay}" Visibility="{x:Bind ChipsBoxVisibility}" Grid.Column="0" Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                             <TextBox Text="{x:Bind Bet, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" LostFocus="TextBox_LostFocus" TextChanged="TextBox_TextChanged" 
-                                     Grid.Column="1" Grid.Row="0" HorizontalAlignment="Center" VerticalAlignment="Center" IsEnabled="{x:Bind CanChangeBet, Mode=OneWay}"/>
+                                     Grid.Column="1" Grid.Row="0" HorizontalAlignment="Left" VerticalAlignment="Center" IsEnabled="{x:Bind CanChangeBet, Mode=OneWay}"/>
                         </Grid>
                     </StackPanel>
                 </DataTemplate>
