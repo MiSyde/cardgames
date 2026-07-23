@@ -6,6 +6,57 @@
     xmlns:local="using:Cards">
     <Application.Resources>
         <ResourceDictionary>
+            <FontFamily x:Key="Pixel">/Assets/Fonts/PixelifySans-VariableFont_wght.ttf#Pixelify Sans</FontFamily>
+            
+            <Style x:Key="PixelTextBlock" TargetType="TextBlock">
+                <Setter Property="FontFamily" Value="{StaticResource Pixel}"/>
+            </Style>
+
+            <Style x:Key="PixelTextBox" TargetType="TextBox">
+                <Setter Property="FontFamily" Value="{StaticResource Pixel}"/>
+            </Style>
+            
+            <Style x:Key="PixelButtonStyle" TargetType="Button">
+                <Setter Property="Background" Value="#8B8B8B"/>
+                <Setter Property="Foreground" Value="White"/>
+                <Setter Property="FontFamily" Value="{StaticResource Pixel}"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid x:Name="RootGrid" Background="{TemplateBinding Background}">
+                                <Border x:Name="TopLeftBorder" BorderBrush="#FFFFFF" BorderThickness="2,2,0,0"/>
+                                <Border x:Name="BottomRightBorder" BorderBrush="#404040" BorderThickness="0,0,2,2"/>
+                                <ContentPresenter x:Name="ContentPresenter"
+                              Content="{TemplateBinding Content}"
+                              HorizontalAlignment="Center"
+                              VerticalAlignment="Center"
+                              Margin="{TemplateBinding Padding}"/>
+                                <VisualStateManager.VisualStateGroups>
+                                    <VisualStateGroup x:Name="CommonStates">
+                                        <VisualState x:Name="Normal"/>
+                                        <VisualState x:Name="PointerOver">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootGrid.Background" Value="#A0A0A0"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Pressed">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootGrid.Background" Value="#606060"/>
+                                                <Setter Target="ContentPresenter.Margin" Value="12,8,8,4"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                        <VisualState x:Name="Disabled">
+                                            <VisualState.Setters>
+                                                <Setter Target="RootGrid.Opacity" Value="0.5"/>
+                                            </VisualState.Setters>
+                                        </VisualState>
+                                    </VisualStateGroup>
+                                </VisualStateManager.VisualStateGroups>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
                 <!-- Other merged dictionaries here -->

@@ -4,9 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Cards
+namespace Cards.Converters
 {
-    internal class ReverseBooleanVisibilityConverter : IValueConverter
+    public class ReverseBooleanVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

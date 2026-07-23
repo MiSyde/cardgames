@@ -15,8 +15,9 @@ using System.Threading.Tasks;
 
 namespace Cards.Models
 {
-    public class Blackjack
+    public class Blackjack : INotifyPropertyChanged
     {
+        public event PropertyChangedEventHandler? PropertyChanged;
         public ObservableCollection<Generic> HandsListForUI;
         private BlackjackDealer _dealer;
         public BlackjackDealer Dealer => _dealer;
@@ -39,6 +40,7 @@ namespace Cards.Models
                 if (_beforeStart != value)
                 {
                     _beforeStart = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(BeforeStart)));
                 }
             }
         }
@@ -50,6 +52,7 @@ namespace Cards.Models
                 if (_over != value)
                 {
                     _over = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Over)));
                 }
             }
         }
@@ -69,8 +72,8 @@ namespace Cards.Models
             _currentHandId = 0;
             _nextHandId = 1;
             _activeHands = new();
-            _over = false;
-            _beforeStart = true;
+            Over = false;
+            BeforeStart = true;
         }
 
         public bool ReadyToStart()
@@ -550,7 +553,9 @@ namespace Cards.Models
 
             UpdateAllButtons();
         }
-        
+        // return list with split IDs to remove from handColumns
+        // remove splits from _hands & handsforui
+        // remove issplit & didsplit from players
         public void NextGame()
         {
             Dealer.ResetDeck();

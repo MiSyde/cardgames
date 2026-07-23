@@ -89,8 +89,33 @@ namespace Cards.Models
         public int Id { get; set; }
         public virtual bool IsSplit { get; }
         public virtual int PlayerId { get; }
-        public bool Insured { get; set; }
-        public int InsuredBet { get; set; }
+        private bool _insured;
+        public bool Insured
+        {
+            get => _insured;
+            set
+            {
+                if (_insured != value)
+                {
+                    _insured = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Insured)));
+                }
+            }
+        }
+        private int _insuredBet;
+        public int InsuredBet
+        {
+            get => _insuredBet;
+            set
+            {
+                if (_insuredBet != value)
+                {
+                    _insuredBet = value;
+                    PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(InsuredBet)));
+                }
+            }
+        }
+        
         public bool Surrendered { get; set; }
 
         public Generic(Blackjack g)
@@ -118,9 +143,13 @@ namespace Cards.Models
 
             CardImages = new();
             currentCards = new();
-            twoCardBlackjack = false;
+
             CurrentCards.CollectionChanged += UpdateScore;
+
+            Insured = false;
+            twoCardBlackjack = false;
             cardScore = 0;
+            InsuredBet = 0;
         }
 
         public void UpdateCommands()

@@ -11,14 +11,14 @@
     Title="Cards">
 
     <Window.SystemBackdrop>
-        <MicaBackdrop />
+        <MicaBackdrop/>
     </Window.SystemBackdrop>
 
     <controls:DockPanel LastChildFill="True">
         <StackPanel controls:DockPanel.Dock="Top"  Orientation="Horizontal">
-            <Button Content="Blackjack" Click="ShowBlackjack" Visibility="{x:Bind GameButtonsVisibility, Mode=OneWay}"/>
-            <Button Content="Back" Click="Back" Visibility="{x:Bind BackButtonVisibility, Mode=OneWay}"/>
-            <Button Content="Close" Click="Close"/>
+            <Button Content="Blackjack" Click="ShowBlackjack" Visibility="{x:Bind GameButtonsVisibility, Mode=OneWay}" Style="{StaticResource PixelButtonStyle}" Margin="5,5,5,5"/>
+            <Button Content="Back" Click="Back" Visibility="{x:Bind BackButtonVisibility, Mode=OneWay}" Style="{StaticResource PixelButtonStyle}" Margin="5,5,5,5"/>
+            <Button Content="Close" Click="Close" Style="{StaticResource PixelButtonStyle}"/>
         </StackPanel>
         <Frame x:Name="MainFrame"/>
     </controls:DockPanel>
